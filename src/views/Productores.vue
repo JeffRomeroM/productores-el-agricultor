@@ -304,7 +304,7 @@
                 :disabled="!esSucursalEditable"
                 @click="form.sucursal = 'Rama'"
               >
-                La Rama
+                Rama
               </button>
             </div>
           </div>
