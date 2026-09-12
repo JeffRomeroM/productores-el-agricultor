@@ -14,7 +14,7 @@
     </div>
 
     <div class="nav-links">
-      <RouterLink to="/productores" class="nav-item">
+      <RouterLink to="/" class="nav-item">
         <div class="icon-box">
           <Icon icon="ph:users-three-bold" class="nav-icon" />
         </div>

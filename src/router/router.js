@@ -8,7 +8,7 @@ import Cultivos from '../views/Cultivos.vue';
 
 
     const routes = [ 
-  { path: '/productores', name: 'productores', component: Productores },
+  { path: '/', name: 'productores', component: Productores },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
   { path: '/tecnicos', name: 'Tecnicos', component: Tecnicos },
   { path: '/cultivos', name: 'Cultivos', component: Cultivos },
