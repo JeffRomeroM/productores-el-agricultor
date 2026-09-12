@@ -13,7 +13,7 @@ export default defineConfig({
         short_name: 'Productores',
         start_url: '/',
         display: 'standalone',
-        background_color: '#388E3C',
+        background_color: '#ffffff',
         theme_color: '#388E3C',
         icons: [
           {
