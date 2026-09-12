@@ -1,15 +1,25 @@
 <template>
   <div class="dashboard-wrapper">
-    <!-- HEADER DEL DASHBOARD -->
+    <!-- HEADER DEL DASHBOARD CON FILTRO DE SUCURSAL -->
     <header class="dash-header">
       <div class="dash-title-group">
         <h1>Panel General</h1>
-        <p class="dash-subtitle">Resumen operativo y métricas</p>
+        <p class="dash-subtitle">Resumen operativo y métricas de campo</p>
       </div>
-      <button class="btn-refresh" @click="cargarDatos" :disabled="cargando">
-        <Icon icon="ph:arrow-clockwise-bold" :class="{ 'spin': cargando }" />
-        <span>Actualizar</span>
-      </button>
+
+      <div class="header-actions">
+        <!-- Filtro por Sucursal -->
+        <select v-model="sucursalSeleccionada" class="select-sucursal">
+          <option value="TODAS">Todas las Sucursales</option>
+          <option value="Nueva Guinea">Nueva Guinea</option>
+          <option value="La Rama">La Rama</option>
+        </select>
+
+        <button class="btn-refresh" @click="cargarDatos" :disabled="cargando">
+          <Icon icon="ph:arrow-clockwise-bold" :class="{ 'spin': cargando }" />
+          <span>Actualizar</span>
+        </button>
+      </div>
     </header>
 
     <!-- ESTADO DE CARGA / VACÍO -->
@@ -19,7 +29,7 @@
     </div>
 
     <template v-else>
-      <!-- TARJETAS KPI PRINCIPALES (2 columnas fijas en móvil) -->
+      <!-- TARJETAS KPI PRINCIPALES -->
       <section class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-icon-box indigo">
@@ -41,13 +51,25 @@
           </div>
         </div>
 
-        <div class="kpi-card">
+        <!-- KPI: Cosecha Total General -->
+        <!-- <div class="kpi-card">
           <div class="kpi-icon-box orange">
             <Icon icon="ph:grains-bold" />
           </div>
           <div class="kpi-content">
-            <span class="kpi-label">Est. Cosecha</span>
+            <span class="kpi-label">Est. Cosecha Total</span>
             <h2 class="kpi-value">{{ totalEstimadoCosecha.toLocaleString() }} <span class="unit">qq</span></h2>
+          </div>
+        </div> -->
+
+        <!-- KPI: Cosecha Estimada Exclusiva de Café -->
+        <div class="kpi-card">
+          <div class="kpi-icon-box amber">
+            <Icon icon="ph:coffee-bold" />
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Est. Cosecha Café</span>
+            <h2 class="kpi-value">{{ totalEstimadoCafe.toLocaleString() }} <span class="unit">qq</span></h2>
           </div>
         </div>
 
@@ -56,13 +78,13 @@
             <Icon icon="ph:user-gear-bold" />
           </div>
           <div class="kpi-content">
-            <span class="kpi-label">Técnicos</span>
-            <h2 class="kpi-value">{{ tecnicos.length }}</h2>
+            <span class="kpi-label">Técnicos Activos</span>
+            <h2 class="kpi-value">{{ tecnicosFiltrados.length }}</h2>
           </div>
         </div>
       </section>
 
-      <!-- SECCIÓN DE GRÁFICOS -->
+      <!-- SECCIÓN DE GRÁFICOS (2 a la par en pantallas grandes, 1 en móvil) -->
       <section class="charts-grid">
         <div class="chart-card">
           <div class="chart-header">
@@ -105,13 +127,13 @@
         </div>
       </section>
 
-      <!-- SECCIÓN AVANZADA: LÍDERES POR CULTIVO (2 COLUMNAS ESTRICTAS) -->
+      <!-- SECCIÓN AVANZADA: LÍDERES POR CULTIVO -->
       <section class="advanced-section">
         <div class="section-header-box">
           <Icon icon="ph:trophy-bold" class="trophy-icon" />
           <div>
             <h3>Líderes de Área por Cultivo</h3>
-            <p>Mayor superficie registrada</p>
+            <p>Mayor superficie registrada (según filtro)</p>
           </div>
         </div>
 
@@ -134,7 +156,7 @@
           </div>
         </div>
         <div v-else class="empty-leaders">
-          <p>No hay suficientes datos registrados.</p>
+          <p>No hay suficientes datos registrados para esta sucursal.</p>
         </div>
       </section>
     </template>
@@ -178,6 +200,7 @@ const CACHE_PROD_KEY = 'vagrop_productores_cache'
 const productores = ref([])
 const tecnicos = ref([])
 const cargando = ref(true)
+const sucursalSeleccionada = ref('TODAS')
 
 const cargarCache = () => {
   const cachedProds = localStorage.getItem(CACHE_PROD_KEY)
@@ -194,7 +217,7 @@ const cargarDatos = async () => {
   try {
     const [resTecnicos, resProductores] = await Promise.all([
       supabase.from('tecnicos').select('id, nombre, sucursal').eq('activo', true),
-      supabase.from('productores').select('*, tecnicos:tecnico_id(id, nombre)')
+      supabase.from('productores').select('*, tecnicos:tecnico_id(id, nombre, sucursal)')
     ])
 
     if (!resTecnicos.error && resTecnicos.data) {
@@ -212,11 +235,28 @@ const cargarDatos = async () => {
   }
 }
 
-const totalProductores = computed(() => productores.value.length)
+// Productores filtrados según la sucursal seleccionada
+const productoresFiltrados = computed(() => {
+  if (sucursalSeleccionada.value === 'TODAS') return productores.value
+  return productores.value.filter(p => {
+    const sucProductor = p.sucursal === 'Rama' ? 'La Rama' : (p.sucursal || 'Nueva Guinea')
+    return sucProductor === sucursalSeleccionada.value
+  })
+})
+
+const tecnicosFiltrados = computed(() => {
+  if (sucursalSeleccionada.value === 'TODAS') return tecnicos.value
+  return tecnicos.value.filter(t => {
+    const sucTecnico = t.sucursal === 'Rama' ? 'La Rama' : (t.sucursal || 'Nueva Guinea')
+    return sucTecnico === sucursalSeleccionada.value
+  })
+})
+
+const totalProductores = computed(() => productoresFiltrados.value.length)
 
 const totalManzanas = computed(() => {
   let total = 0
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     if (Array.isArray(p.cultivos)) {
       p.cultivos.forEach(c => { total += Number(c.manzanas) || 0 })
     }
@@ -226,7 +266,7 @@ const totalManzanas = computed(() => {
 
 const totalEstimadoCosecha = computed(() => {
   let total = 0
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     if (Array.isArray(p.cultivos)) {
       p.cultivos.forEach(c => {
         const mz = Number(c.manzanas) || 0
@@ -238,11 +278,28 @@ const totalEstimadoCosecha = computed(() => {
   return Math.round(total)
 })
 
+// Cosecha estimada exclusiva para el cultivo de Café (insensible a mayúsculas/minúsculas)
+const totalEstimadoCafe = computed(() => {
+  let total = 0
+  productoresFiltrados.value.forEach(p => {
+    if (Array.isArray(p.cultivos)) {
+      p.cultivos.forEach(c => {
+        if (c.nombre && c.nombre.trim().toLowerCase() === 'café' || c.nombre.trim().toLowerCase() === 'cafe') {
+          const mz = Number(c.manzanas) || 0
+          const qqMz = Number(c.estimado_qq_mz) || 0
+          total += mz * qqMz
+        }
+      })
+    }
+  })
+  return Math.round(total)
+})
+
 const chartDataTecnicos = computed(() => {
   const conteo = {}
-  tecnicos.value.forEach(t => { conteo[t.nombre] = 0 })
+  tecnicosFiltrados.value.forEach(t => { conteo[t.nombre] = 0 })
 
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     const nombreTec = p.tecnicos?.nombre || 'Sin Asignar'
     conteo[nombreTec] = (conteo[nombreTec] || 0) + 1
   })
@@ -260,7 +317,7 @@ const chartDataTecnicos = computed(() => {
 
 const chartDataCultivos = computed(() => {
   const conteo = {}
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     if (Array.isArray(p.cultivos)) {
       p.cultivos.forEach(c => {
         if (c.nombre) conteo[c.nombre] = (conteo[c.nombre] || 0) + 1
@@ -279,7 +336,7 @@ const chartDataCultivos = computed(() => {
 
 const chartDataManzanasCultivo = computed(() => {
   const manzanasPorCultivo = {}
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     if (Array.isArray(p.cultivos)) {
       p.cultivos.forEach(c => {
         if (c.nombre) {
@@ -302,7 +359,7 @@ const chartDataManzanasCultivo = computed(() => {
 
 const chartDataSucursales = computed(() => {
   const sucursales = { 'Nueva Guinea': 0, 'La Rama': 0 }
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     const suc = p.sucursal === 'Rama' ? 'La Rama' : 'Nueva Guinea'
     sucursales[suc] = (sucursales[suc] || 0) + 1
   })
@@ -318,7 +375,7 @@ const chartDataSucursales = computed(() => {
 
 const topProductoresPorCultivo = computed(() => {
   const mapaCultivos = {}
-  productores.value.forEach(p => {
+  productoresFiltrados.value.forEach(p => {
     if (Array.isArray(p.cultivos)) {
       p.cultivos.forEach(c => {
         if (!c.nombre) return
@@ -392,10 +449,17 @@ onMounted(() => { cargarDatos() })
 /* Header */
 .dash-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .dash-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 .dash-title-group h1 {
@@ -409,6 +473,24 @@ onMounted(() => { cargarDatos() })
   font-size: 0.7rem;
   color: #64748B;
   margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.select-sucursal {
+  background: white;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.7rem;
+  cursor: pointer;
+  outline: none;
 }
 
 .btn-refresh {
@@ -429,7 +511,7 @@ onMounted(() => { cargarDatos() })
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* KPI Grid: 2 columnas en móvil, 4 en pantallas grandes */
+/* KPI Grid: Adaptado para 5 tarjetas */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -437,9 +519,9 @@ onMounted(() => { cargarDatos() })
   margin-bottom: 0.75rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .kpi-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.75rem;
   }
 }
@@ -470,6 +552,7 @@ onMounted(() => { cargarDatos() })
 .kpi-icon-box.indigo { background: #EEF2FF; color: #4F46E5; }
 .kpi-icon-box.emerald { background: #ECFDF5; color: #059669; }
 .kpi-icon-box.orange { background: #FFF7ED; color: #D97706; }
+.kpi-icon-box.amber { background: #FEF3C7; color: #B45309; }
 .kpi-icon-box.violet { background: #F5F3FF; color: #7C3AED; }
 
 .kpi-content {
@@ -522,7 +605,7 @@ onMounted(() => { cargarDatos() })
   border-radius: 10px;
   padding: 0.75rem;
   box-sizing: border-box;
-  width: 98%;
+  width: 99%;
 }
 
 .chart-header {
