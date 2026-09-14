@@ -131,6 +131,18 @@
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { Icon } from '@iconify/vue'
 import { supabase } from '../supabase/supabase.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const verificarAccesoAdmin = () => {
+  const rol = localStorage.getItem('vagrop_rol')
+  if (rol !== 'admin') {
+    alert('Acceso denegado: Se requieren permisos de administrador.')
+    router.push('/productores')
+  }
+}
+
 
 const CACHE_KEY = 'vagrop_cultivos_catalogo_cache'
 
@@ -301,8 +313,10 @@ const confirmarEliminar = async () => {
 }
 
 onMounted(() => {
+  verificarAccesoAdmin()
   cargarCultivos()
 })
+
 </script>
 
 <style scoped>
@@ -310,6 +324,7 @@ onMounted(() => {
   position: relative;
   max-width: 600px;
   margin: 0 auto;
+  margin-top: 10vh;
   padding: 1rem;
   font-family: system-ui, -apple-system, sans-serif;
   color: #0F172A;

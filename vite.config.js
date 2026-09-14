@@ -17,7 +17,7 @@ export default defineConfig({
         theme_color: '#388E3C',
         icons: [
           {
-            src: '/logo.png',
+            src: '/logoblanco.png',
             sizes: '192x192',
             type: 'image/png'
           },

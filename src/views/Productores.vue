@@ -3,7 +3,7 @@
     <!-- SISTEMA DE TOAST NOTIFICATIONS -->
     <Transition name="toast-fade">
       <div v-if="toast.visible" :class="['toast-notification', toast.tipo]">
-        <Icon :icon="toast.tipo === 'error' ? 'ph:warning-circle-bold' : 'ph:check-circle-bold'" class="toast-icon" />
+        <Icon :icon="toast.tipo === 'error' ? 'ph:warning-circle-bold' : 'ph:check-circle-bold'" class="toast-icon"/>
         <span>{{ toast.mensaje }}</span>
       </div>
     </Transition>
@@ -16,9 +16,21 @@
       </div>
 
       <div class="header-actions-group">
+        <!-- Botones de Descarga Separados (Visibles para administradores) -->
+        <template v-if="esAdmin">
+          <button class="btn-export-header btn-excel" @click="exportarExcel" title="Descargar Excel">
+            <Icon class="btn-icon text-green-600" icon="ph:file-xls-bold"/>
+            <span class="btn-text">Excel</span>
+          </button>
+          <button class="btn-export-header btn-pdf" @click="exportarPDF" title="Descargar PDF">
+            <Icon class="btn-icon text-red-600" icon="ph:file-pdf-bold"/>
+            <span class="btn-text">PDF</span>
+          </button>
+        </template>
+
         <button class="btn-fab-header" @click="abrirModal()">
-          <Icon icon="ph:plus-bold" class="btn-icon" />
-          Nuevo
+          <Icon class="btn-icon" icon="ph:plus-bold"/>
+          <span>Nuevo</span>
         </button>
       </div>
     </header>
@@ -26,7 +38,7 @@
     <!-- BARRA DE BÚSQUEDA Y FILTROS -->
     <section class="filters-container">
       <div class="search-bar">
-        <Icon icon="ph:magnifying-glass-bold" class="search-icon" />
+        <Icon class="search-icon" icon="ph:magnifying-glass-bold"/>
         <input 
           v-model="busqueda" 
           type="text" 
@@ -34,7 +46,7 @@
           @input="paginaActual = 1"
         />
         <button v-if="busqueda" class="btn-clear" @click="busqueda = ''; paginaActual = 1">
-          <Icon icon="ph:x-bold" />
+          <Icon icon="ph:x-bold"/>
         </button>
       </div>
 
@@ -42,7 +54,7 @@
       <div class="filter-chips">
         <!-- Filtro Comunidad -->
         <div class="filter-select-wrapper">
-          <Icon icon="ph:map-pin-bold" class="select-icon" />
+          <Icon class="select-icon" icon="ph:map-pin-bold"/>
           <select v-model="filtroComunidad" @change="paginaActual = 1">
             <option value="">Todas las Comunidades</option>
             <option v-for="c in comunidadesDisponibles" :key="c" :value="c">
@@ -53,7 +65,7 @@
 
         <!-- Filtro Dinámico por Cultivo -->
         <div class="filter-select-wrapper">
-          <Icon icon="ph:plant-bold" class="select-icon" />
+          <Icon class="select-icon" icon="ph:plant-bold"/>
           <select v-model="filtroCultivo" @change="paginaActual = 1">
             <option value="">Todos los Cultivos</option>
             <option v-for="c in catalogoCultivos" :key="c.id" :value="c.nombre">
@@ -62,9 +74,9 @@
           </select>
         </div>
 
-        <!-- Filtro Técnico -->
-        <div class="filter-select-wrapper">
-          <Icon icon="ph:user-gear-bold" class="select-icon" />
+        <!-- Filtro Técnico (Visible solo si es Admin) -->
+        <div v-if="esAdmin" class="filter-select-wrapper">
+          <Icon class="select-icon" icon="ph:user-gear-bold"/>
           <select v-model="filtroTecnico" @change="paginaActual = 1">
             <option value="">Todos los Técnicos</option>
             <option v-for="t in tecnicos" :key="t.id" :value="t.id">
@@ -75,7 +87,7 @@
 
         <!-- Filtro Sucursal -->
         <div class="filter-select-wrapper">
-          <Icon icon="ph:storefront-bold" class="select-icon" />
+          <Icon class="select-icon" icon="ph:storefront-bold"/>
           <select v-model="filtroSucursal" @change="paginaActual = 1">
             <option value="">Todas las Sucursales</option>
             <option value="Nueva Guinea">Nueva Guinea</option>
@@ -83,24 +95,35 @@
           </select>
         </div>
 
+        <!-- Filtro por Área (Mz) -->
+        <div class="filter-select-wrapper">
+          <Icon class="select-icon" icon="ph:ruler-bold"/>
+          <select v-model="filtroArea" @change="paginaActual = 1">
+            <option value="">Todas las Áreas</option>
+            <option value="0-10">0 - 10 Mz</option>
+            <option value="10-20">10 - 20 Mz</option>
+            <option value="20+">20 Mz a más</option>
+          </select>
+        </div>
+
         <!-- Botón Limpiar Filtros -->
         <button 
-          v-if="filtroComunidad || filtroCultivo || filtroTecnico || filtroSucursal || busqueda" 
+          v-if="filtroComunidad || filtroCultivo || filtroTecnico || filtroSucursal || filtroArea || busqueda" 
           class="btn-reset-filters" 
           @click="limpiarFiltros"
         >
-          <Icon icon="ph:funnel-x-bold" /> Limpiar
+          <Icon icon="ph:funnel-x-bold"/> Limpiar
         </button>
       </div>
     </section>
 
     <!-- INDICADOR DE CARGA -->
     <div v-if="cargando && (!productores || productores.length === 0)" class="loading-state">
-      <Icon icon="ph:spinner-gap-bold" class="spinner-icon" />
+      <Icon class="spinner-icon" icon="ph:spinner-gap-bold"/>
       <p>Cargando lista de productores...</p>
     </div>
 
-    <!-- LISTA DE PRODUCTORES (PAGINADA EN 10) -->
+    <!-- LISTA DE PRODUCTORES -->
     <main v-else-if="productoresPaginados.length > 0" class="cards-list-wrapper">
       <div class="cards-list">
         <div v-for="p in productoresPaginados" :key="p.id" class="prod-card">
@@ -111,15 +134,15 @@
             <div class="user-details">
               <h3 @click="abrirModal(p)">{{ p.nombre }}</h3>
               <p class="meta-tag">
-                <Icon icon="ph:map-pin-bold" class="inline-icon" /> 
+                <Icon class="inline-icon" icon="ph:map-pin-bold"/> 
                 <b>{{ p.comunidad }}</b> • {{ p.sucursal }}
               </p>
               <p class="meta-tag">
-                <Icon icon="ph:user-gear-bold" class="inline-icon" /> 
-                Técnico: {{ p.tecnicos?.nombre || 'Sin Asignar' }}
+                <Icon class="inline-icon" icon="mdi:account-hard-hat"/> 
+                 {{ p.tecnicos?.nombre || 'Sin Asignar' }}
               </p>
               <p class="phone-tag">
-                <Icon icon="ph:phone-fill" class="inline-icon" />
+                <Icon class="inline-icon" icon="ph:phone-fill"/>
                 <span v-if="p.telefono">{{ p.telefono }}</span>
                 <span v-else class="no-phone">Sin teléfono</span>
               </p>
@@ -129,7 +152,7 @@
           <!-- Resumen de Cultivos -->
           <div class="cultivos-summary" v-if="p.cultivos && p.cultivos.length > 0">
             <div class="summary-title">
-              <Icon icon="ph:plant-duotone" class="title-icon" /> Cultivos Registrados
+              <Icon class="title-icon" icon="ph:plant-duotone"/> Cultivos Registrados (Área Total: {{ calcularAreaTotal(p.cultivos) }} Mz)
             </div>
             <div class="cultivos-grid-list">
               <div v-for="(c, idx) in p.cultivos" :key="idx" class="cultivo-item-card">
@@ -138,8 +161,7 @@
                   <span class="cultivo-mz">{{ c.manzanas || 0 }} Mz</span>
                 </div>
                 <div v-if="c.estimado_qq_mz > 0" class="cultivo-item-details">
-                  <span>Rendimiento: <b>{{ c.estimado_qq_mz }} qq/mz</b></span>
-                  <span>Est. Cosecha: <b>{{ ((Number(c.manzanas) || 0) * (Number(c.estimado_qq_mz) || 0)).toLocaleString() }} qq</b></span>
+                  <span>Rendimiento Estático: <b>{{ c.estimado_qq_mz }} qq/mz</b></span>
                 </div>
               </div>
             </div>
@@ -148,16 +170,16 @@
           <!-- Acciones -->
           <div class="card-actions-row">
             <button class="action-btn btn-call" :disabled="!p.telefono" @click="llamarProductor(p.telefono)">
-              <Icon icon="ph:phone-fill" class="action-icon" /> Llamar
+              <Icon class="action-icon" icon="ph:phone-fill"/> 
             </button>
             <button class="action-btn btn-ws" :disabled="!p.telefono" @click="abrirWhatsApp(p.telefono, p.nombre)">
-              <Icon icon="ph:whatsapp-logo-fill" class="action-icon" /> WhatsApp
+              <Icon class="action-icon" icon="ph:whatsapp-logo-fill"/> 
             </button>
             <button class="action-btn btn-edit" @click="abrirModal(p)">
-              <Icon icon="ph:pencil-simple-line-fill" class="action-icon" /> Editar
+              <Icon class="action-icon" icon="ph:pencil-simple-line-fill"/> Editar
             </button>
             <button class="action-btn btn-delete" @click="abrirModalEliminar(p)">
-              <Icon icon="ph:trash-bold" class="action-icon" /> Eliminar
+              <Icon class="action-icon" icon="ph:trash-bold"/> Eliminar
             </button>
           </div>
         </div>
@@ -175,7 +197,7 @@
             @click="paginaActual--" 
             class="btn-page"
           >
-            <Icon icon="ph:caret-left-bold" />
+            <Icon icon="ph:caret-left-bold"/>
             Anterior
           </button>
           
@@ -187,7 +209,7 @@
             class="btn-page"
           >
             Siguiente
-            <Icon icon="ph:caret-right-bold" />
+            <Icon icon="ph:caret-right-bold"/>
           </button>
         </div>
       </div>
@@ -195,7 +217,7 @@
 
     <!-- ESTADO VACÍO -->
     <div v-else class="empty-state">
-      <Icon icon="ph:users-three-light" class="empty-icon" />
+      <Icon class="empty-icon" icon="ph:users-three-light"/>
       <p>No se encontraron productores que coincidan con los filtros aplicados.</p>
     </div>
 
@@ -203,7 +225,7 @@
     <div v-if="modalEliminarAbierto" class="modal-overlay-center" @click.self="cerrarModalEliminar">
       <div class="modal-box modal-delete">
         <div class="delete-icon-wrapper">
-          <Icon icon="ph:trash-bold" class="delete-warning-icon" />
+          <Icon class="delete-warning-icon" icon="ph:trash-bold"/>
         </div>
         <h3>¿Eliminar productor?</h3>
         <p class="delete-description">
@@ -262,24 +284,35 @@
             </div>
           </div>
 
-          <!-- Selección de Técnico -->
+          <!-- Selección de Técnico Responsable -->
           <div class="input-group">
             <label>Técnico Responsable *</label>
             <div class="tecnicos-selector">
-              <button
-                v-for="t in tecnicos"
-                :key="t.id"
-                type="button"
-                class="btn-tecnico"
-                :class="{ active: form.tecnico_id === t.id }"
-                @click="seleccionarTecnico(t)"
-              >
-                <Icon icon="ph:user-circle-bold" class="tec-icon" />
-                <div class="tec-info">
-                  <span class="tec-name">{{ t.nombre }}</span>
-                  <span class="tec-branch">{{ t.sucursal }}</span>
+              <template v-if="esAdmin">
+                <button
+                  v-for="t in tecnicosActivos"
+                  :key="t.id"
+                  type="button"
+                  class="btn-tecnico"
+                  :class="{ active: form.tecnico_id === t.id }"
+                  @click="seleccionarTecnico(t)"
+                >
+                  <Icon class="tec-icon" icon="ph:user-circle-bold"/>
+                  <div class="tec-info">
+                    <span class="tec-name">{{ t.nombre }}</span>
+                    <span class="tec-branch">{{ t.sucursal }}</span>
+                  </div>
+                </button>
+              </template>
+              <template v-else>
+                <div class="btn-tecnico active">
+                  <Icon class="tec-icon" icon="ph:user-circle-bold"/>
+                  <div class="tec-info">
+                    <span class="tec-name">{{ tecnicoSesion?.nombre || 'Técnico Actual' }}</span>
+                    <span class="tec-branch">{{ tecnicoSesion?.sucursal || form.sucursal }}</span>
+                  </div>
                 </div>
-              </button>
+              </template>
             </div>
           </div>
 
@@ -312,9 +345,9 @@
           <!-- Sección Dinámica de Cultivos -->
           <div class="cultivos-section">
             <div class="cultivos-header">
-              <label>Cultivos y Estimado de Cosecha</label>
+              <label>Cultivos y Estimado Estático (Qq/Mz)</label>
               <button type="button" class="btn-add-cultivo" @click="agregarCultivo">
-                <Icon icon="ph:plus-bold" /> Agregar
+                <Icon icon="ph:plus-bold"/> Agregar
               </button>
             </div>
 
@@ -344,7 +377,7 @@
                   />
                 </div>
                 <div class="field-item field-qq">
-                  <span class="field-label">Qq/Mz</span>
+                  <span class="field-label">Est. Qq/Mz (Estático)</span>
                   <input 
                     v-model.number="cultivoItem.estimado_qq_mz" 
                     type="number" 
@@ -360,7 +393,7 @@
                 @click="eliminarCultivo(index)"
                 title="Eliminar cultivo"
               >
-                <Icon icon="ph:trash-bold" />
+                <Icon icon="ph:trash-bold"/>
               </button>
             </div>
           </div>
@@ -381,6 +414,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { supabase } from '../supabase/supabase.js'
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const CACHE_TECNICOS_KEY = 'vagrop_tecnicos_cache'
 const CACHE_PRODUCTORES_KEY = 'vagrop_productores_cache'
@@ -399,19 +435,23 @@ const modoEdicion = ref(false)
 const modalEliminarAbierto = ref(false)
 const productorAEliminar = ref(null)
 
+const usuarioActual = ref(null)
+const tecnicoSesion = ref(null)
+const esAdmin = ref(false)
+
 // ESTADOS DE FILTROS Y PAGINACIÓN
 const busqueda = ref('')
 const filtroComunidad = ref('')
 const filtroCultivo = ref('')
 const filtroTecnico = ref('')
 const filtroSucursal = ref('')
+const filtroArea = ref('')
 
 const paginaActual = ref(1)
-const porPagina = ref(10) // Paginación ajustada a 10 por página
+const porPagina = ref(10)
 
 const errorTelefono = ref('')
 
-// SISTEMA LIGERO DE TOAST NOTIFICATIONS
 const toast = ref({
   visible: false,
   mensaje: '',
@@ -458,20 +498,42 @@ const cargarCacheLocal = () => {
   if (cachedProds || cachedTecs || cachedCults) cargando.value = false
 }
 
-const cargarDatos = async () => {
+const inicializarSesionYDatos = async () => {
   cargarCacheLocal()
 
   try {
-    const [resTecnicos, resProductores, resCultivos] = await Promise.all([
-      supabase.from('tecnicos').select('id, nombre, sucursal, activo').eq('activo', true).order('nombre'),
-      supabase.from('productores').select('*, tecnicos:tecnico_id(id, nombre, sucursal)').order('created_at', { ascending: false }),
-      supabase.from('cultivos').select('id, nombre, activo').eq('activo', true).order('nombre')
-    ])
+    const { data: { user } } = await supabase.auth.getUser()
+    usuarioActual.value = user
 
+    const resTecnicos = await supabase.from('tecnicos').select('id, nombre, sucursal, activo, correo, rol').order('nombre')
+    
     if (!resTecnicos.error && resTecnicos.data) {
       tecnicos.value = resTecnicos.data
       localStorage.setItem(CACHE_TECNICOS_KEY, JSON.stringify(resTecnicos.data))
+
+      if (user) {
+        tecnicoSesion.value = resTecnicos.data.find(t => t.correo?.toLowerCase() === user.email?.toLowerCase()) || null
+      }
     }
+
+    esAdmin.value = Boolean(
+      user?.email?.toLowerCase().includes('admin') || 
+      user?.user_metadata?.rol === 'admin' || 
+      user?.app_metadata?.rol === 'admin' ||
+      tecnicoSesion.value?.rol === 'admin' ||
+      (tecnicoSesion.value && tecnicoSesion.value.correo?.toLowerCase().includes('admin'))
+    )
+
+    let queryProductores = supabase.from('productores').select('*, tecnicos:tecnico_id(id, nombre, sucursal)').order('created_at', { ascending: false })
+    
+    if (!esAdmin.value && tecnicoSesion.value) {
+      queryProductores = queryProductores.eq('tecnico_id', tecnicoSesion.value.id)
+    }
+
+    const [resProductores, resCultivos] = await Promise.all([
+      queryProductores,
+      supabase.from('cultivos').select('id, nombre, activo').eq('activo', true).order('nombre')
+    ])
 
     if (!resProductores.error && resProductores.data) {
       productores.value = resProductores.data
@@ -528,6 +590,11 @@ const comunidadesDisponibles = computed(() => {
   return Array.from(mapComunidades.values()).sort()
 })
 
+const calcularAreaTotal = (cultivos) => {
+  if (!Array.isArray(cultivos)) return 0
+  return cultivos.reduce((acc, c) => acc + (Number(c.manzanas) || 0), 0)
+}
+
 const productoresFiltrados = computed(() => {
   if (!productores.value || !Array.isArray(productores.value)) return []
 
@@ -548,7 +615,17 @@ const productoresFiltrados = computed(() => {
     const matchTecnico = !filtroTecnico.value || p.tecnico_id === filtroTecnico.value
     const matchSucursal = !filtroSucursal.value || p.sucursal === filtroSucursal.value
 
-    return matchBusqueda && matchComunidad && matchCultivo && matchTecnico && matchSucursal
+    const areaTotal = calcularAreaTotal(p.cultivos)
+    let matchArea = true
+    if (filtroArea.value === '0-10') {
+      matchArea = areaTotal >= 0 && areaTotal <= 10
+    } else if (filtroArea.value === '10-20') {
+      matchArea = areaTotal > 10 && areaTotal <= 20
+    } else if (filtroArea.value === '20+') {
+      matchArea = areaTotal > 20
+    }
+
+    return matchBusqueda && matchComunidad && matchCultivo && matchTecnico && matchSucursal && matchArea
   })
 })
 
@@ -567,8 +644,13 @@ const limpiarFiltros = () => {
   filtroCultivo.value = ''
   filtroTecnico.value = ''
   filtroSucursal.value = ''
+  filtroArea.value = ''
   paginaActual.value = 1
 }
+
+const tecnicosActivos = computed(() => {
+  return tecnicos.value.filter(t => t.activo === true)
+})
 
 const tecnicoSeleccionado = computed(() => {
   return tecnicos.value.find(t => t.id === form.value.tecnico_id) || null
@@ -611,22 +693,135 @@ const llamarProductor = (telefono) => {
   window.location.href = `tel:${num}`
 }
 
+// EXPORTACIÓN COMPLETA A EXCEL
+// EXPORTACIÓN COMPLETA A EXCEL (SIN DUPLICAR FILAS)
+const exportarExcel = () => {
+  if (!productoresFiltrados.value.length) {
+    showToast('No hay datos para exportar', 'error')
+    return
+  }
+
+  const datosExportar = []
+  productoresFiltrados.value.forEach(p => {
+    const areaTotal = calcularAreaTotal(p.cultivos)
+    let detalleCultivos = 'Sin cultivos'
+    
+    if (p.cultivos && p.cultivos.length > 0) {
+      detalleCultivos = p.cultivos.map(c => 
+        `${c.nombre}: ${c.manzanas || 0} Mz (Est: ${c.estimado_qq_mz || 0} qq/mz)`
+      ).join('\n')
+    }
+
+    datosExportar.push({
+      'ID': p.id,
+      'Nombre': p.nombre || '',
+      'Comunidad': p.comunidad || '',
+      'Teléfono': p.telefono || '',
+      'Sucursal': p.sucursal || '',
+      'Técnico': p.tecnicos?.nombre || 'Sin Asignar',
+      'Cultivos Registrados': detalleCultivos,
+      'Área Total (Mz)': areaTotal
+    })
+  })
+
+  const worksheet = XLSX.utils.json_to_sheet(datosExportar)
+  
+  // Habilitar ajuste de texto (Wrap Text) en la columna de cultivos para que se visualicen los saltos de línea
+  if (!worksheet['!cols']) worksheet['!cols'] = []
+  worksheet['!cols'][6] = { wch: 45 } // Ancho adecuado para la columna de cultivos
+
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Productores')
+  
+  XLSX.writeFile(workbook, `productores_resumen_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  showToast('Archivo Excel descargado con éxito', 'success')
+}
+
+// EXPORTACIÓN COMPLETA A PDF CON AUTOTABLE
+const exportarPDF = () => {
+  if (!productoresFiltrados.value.length) {
+    showToast('No hay datos para exportar', 'error')
+    return
+  }
+
+  const doc = new jsPDF({ orientation: 'landscape' })
+  
+  doc.setFontSize(16)
+  doc.setTextColor(46, 125, 50)
+  doc.text('Reporte General y Detallado de Productores de Agroservicio El Agricultor', 14, 15)
+
+  doc.setFontSize(9)
+  doc.setTextColor(100, 100, 100)
+  doc.text(`Fecha: ${new Date().toLocaleDateString()} | Total Registros: ${productoresFiltrados.value.length}`, 14, 21)
+
+  const columnas = [
+    'Nombre', 
+    'Comunidad', 
+    'Teléfono', 
+    'Sucursal', 
+    'Técnico', 
+    'Cultivos y Detalle (Cultivo - Área - Rendimiento)', 
+    'Área Total (Mz)'
+  ]
+  
+  const filas = productoresFiltrados.value.map(p => {
+    const areaTotal = calcularAreaTotal(p.cultivos)
+    let detalleCultivos = 'Sin cultivos'
+    
+    if (p.cultivos && p.cultivos.length > 0) {
+      detalleCultivos = p.cultivos.map(c => 
+        `• ${c.nombre}: ${c.manzanas || 0} Mz (Est: ${c.estimado_qq_mz || 0} qq/mz)`
+      ).join('\n')
+    }
+
+    return [
+      p.nombre || '',
+      p.comunidad || '',
+      p.telefono || 'Sin teléfono',
+      p.sucursal || '',
+      p.tecnicos?.nombre || 'Sin Asignar',
+      detalleCultivos,
+      `${areaTotal} Mz`
+    ]
+  })
+
+  autoTable(doc, {
+    startY: 25,
+    head: [columnas],
+    body: filas,
+    theme: 'grid',
+    headStyles: { fillColor: [46, 125, 50] },
+    styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+    columnStyles: {
+      5: { cellWidth: 110 }
+    }
+  })
+
+  doc.save(`productores_detalle_${new Date().toISOString().slice(0, 10)}.pdf`)
+  showToast('Archivo PDF detallado descargado con éxito', 'success')
+}
+
 const abrirModal = (productor = null) => {
   errorTelefono.value = ''
+  
+  const tecDefault = tecnicoSesion.value || (tecnicosActivos.value.length > 0 ? tecnicosActivos.value[0] : null)
+
   if (productor) {
     modoEdicion.value = true
     form.value = { 
       ...productor,
-      tecnico_id: productor.tecnico_id || null,
+      tecnico_id: esAdmin.value ? (productor.tecnico_id || null) : (tecDefault ? tecDefault.id : productor.tecnico_id),
       sucursal: productor.sucursal || 'Nueva Guinea',
       cultivos: Array.isArray(productor.cultivos) ? JSON.parse(JSON.stringify(productor.cultivos)) : []
     }
   } else {
     modoEdicion.value = false
-    const primerTecnico = tecnicos.value.length > 0 ? tecnicos.value[0] : null
+    
     let sucursalInicial = 'Nueva Guinea'
-    if (primerTecnico && primerTecnico.sucursal !== 'Ambas') {
-      sucursalInicial = primerTecnico.sucursal === 'Rama' ? 'Rama' : 'Nueva Guinea'
+    if (tecDefault) {
+      if (tecDefault.sucursal === 'Rama') sucursalInicial = 'Rama'
+      else if (tecDefault.sucursal === 'Nueva Guinea') sucursalInicial = 'Nueva Guinea'
+      else sucursalInicial = 'Nueva Guinea'
     }
 
     form.value = {
@@ -634,7 +829,7 @@ const abrirModal = (productor = null) => {
       nombre: '',
       comunidad: '',
       telefono: '',
-      tecnico_id: primerTecnico ? primerTecnico.id : null,
+      tecnico_id: esAdmin.value ? (tecDefault ? tecDefault.id : null) : (tecnicoSesion.value ? tecnicoSesion.value.id : null),
       sucursal: sucursalInicial,
       cultivos: []
     }
@@ -665,6 +860,11 @@ const guardarProductor = async () => {
   if (form.value.telefono && form.value.telefono.length !== 8) {
     showToast('El teléfono debe tener 8 dígitos numéricos', 'error')
     return
+  }
+
+  if (!esAdmin.value && tecnicoSesion.value) {
+    form.value.tecnico_id = tecnicoSesion.value.id
+    form.value.sucursal = tecnicoSesion.value.sucursal === 'Ambas' ? form.value.sucursal : tecnicoSesion.value.sucursal
   }
 
   if (!form.value.tecnico_id) {
@@ -698,7 +898,7 @@ const guardarProductor = async () => {
   } else {
     showToast('Productor guardado exitosamente', 'success')
     cerrarModal()
-    cargarDatos()
+    inicializarSesionYDatos()
   }
 }
 
@@ -720,17 +920,16 @@ const confirmarEliminar = async () => {
     showToast('Productor eliminado permanentemente.', 'success')
     cerrarModalEliminar()
     
-    // Ajustar página si la actual queda vacía tras eliminar
     if (productoresPaginados.value.length === 1 && paginaActual.value > 1) {
       paginaActual.value--
     }
     
-    cargarDatos()
+    inicializarSesionYDatos()
   }
 }
 
 onMounted(() => {
-  cargarDatos()
+  inicializarSesionYDatos()
 })
 </script>
 
@@ -738,6 +937,7 @@ onMounted(() => {
 .app-wrapper {
   max-width: 1024px;
   margin: 0 auto;
+  margin-top: 10vh;
   padding: 1rem;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #0F172A;
@@ -746,12 +946,13 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-/* Header */
 .app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .header-title {
@@ -779,7 +980,8 @@ onMounted(() => {
 .header-actions-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  flex-wrap: wrap;
 }
 
 .btn-fab-header {
@@ -797,7 +999,33 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(56, 142, 60, 0.25);
 }
 
-/* Filtros */
+.btn-export-header {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-export-header:hover {
+  background-color: #F1F5F9;
+}
+
+@media (max-width: 480px) {
+  .btn-text {
+    display: none;
+  }
+  .btn-export-header {
+    padding: 0.5rem;
+  }
+}
+
 .filters-container {
   display: flex;
   flex-direction: column;
@@ -852,8 +1080,8 @@ onMounted(() => {
   border: 1px solid #E2E8F0;
   border-radius: 10px;
   padding: 0 0.5rem;
-  flex: 1 1 calc(25% - 0.4rem);
-  min-width: 140px;
+  flex: 1 1 calc(20% - 0.4rem);
+  min-width: 130px;
 }
 
 .select-icon {
@@ -887,7 +1115,6 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* Grilla de Cards */
 .cards-list-wrapper {
   display: flex;
   flex-direction: column;
@@ -965,7 +1192,6 @@ onMounted(() => {
   color: #64748B;
 }
 
-/* Resumen Cultivos */
 .cultivos-summary {
   margin-top: 0.8rem;
   background: #F8FAFC;
@@ -1070,7 +1296,6 @@ onMounted(() => {
 .btn-edit:hover { background-color: #E2E8F0; }
 .btn-delete:hover { background-color: #FEE2E2; }
 
-/* Controles de Paginación */
 .pagination-bar {
   display: flex;
   flex-direction: column;
@@ -1125,7 +1350,6 @@ onMounted(() => {
   color: #0F172A;
 }
 
-/* Estados */
 .empty-state, .loading-state {
   text-align: center;
   padding: 2.5rem 1rem;
@@ -1140,7 +1364,6 @@ onMounted(() => {
   margin-bottom: 0.5rem;
 }
 
-/* Modales */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1521,7 +1744,6 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-/* Toast Notifications */
 .toast-notification {
   position: fixed;
   bottom: 1.25rem;
@@ -1548,13 +1770,5 @@ onMounted(() => {
 .toast-fade-enter-from, .toast-fade-leave-to {
   opacity: 0;
   transform: translateY(10px);
-}
-
-@media (max-width: 480px) {
-  .filter-select-wrapper { flex: 1 1 100%; }
-  .tecnicos-selector { grid-template-columns: 1fr; }
-  .grid-2 { grid-template-columns: 1fr; gap: 0; }
-  .cultivos-grid-list { grid-template-columns: 1fr; }
-  .card-actions-row { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
 }
 </style>

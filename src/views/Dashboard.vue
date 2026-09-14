@@ -12,7 +12,7 @@
         <select v-model="sucursalSeleccionada" class="select-sucursal">
           <option value="TODAS">Todas las Sucursales</option>
           <option value="Nueva Guinea">Nueva Guinea</option>
-          <option value="La Rama">La Rama</option>
+          <option value="Rama">Rama</option>
         </select>
 
         <button class="btn-refresh" @click="cargarDatos" :disabled="cargando">
@@ -43,7 +43,7 @@
 
         <div class="kpi-card">
           <div class="kpi-icon-box emerald">
-            <Icon icon="ph:plant-bold" />
+            <Icon icon="ph:ruler-bold" />
           </div>
           <div class="kpi-content">
             <span class="kpi-label">Área Total</span>
@@ -65,7 +65,7 @@
         <!-- KPI: Cosecha Estimada Exclusiva de Café -->
         <div class="kpi-card">
           <div class="kpi-icon-box amber">
-            <Icon icon="ph:coffee-bold" />
+            <Icon icon="mdi:seed" />
           </div>
           <div class="kpi-content">
             <span class="kpi-label">Est. Cosecha Café</span>
@@ -167,6 +167,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { supabase } from '../supabase/supabase.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const verificarAccesoAdmin = () => {
+  const rol = (localStorage.getItem('vagrop_rol') || '').toLowerCase().trim()
+  if (rol !== 'admin') {
+    alert('Acceso denegado: Se requieren permisos de administrador.')
+    router.push('/productores')
+  }
+}
+
+
 
 import {
   Chart as ChartJS,
@@ -428,7 +441,11 @@ const chartOptionsDoughnut = {
   }
 }
 
-onMounted(() => { cargarDatos() })
+
+onMounted(() => { 
+  verificarAccesoAdmin()
+  cargarDatos() 
+})
 </script>
 
 <style scoped>
@@ -437,6 +454,7 @@ onMounted(() => { cargarDatos() })
   width: 100%;
   max-width: 100%;
   margin: 0;
+  margin-top: 10vh;
   padding: 0.75rem;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #0F172A;

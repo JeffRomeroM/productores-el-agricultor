@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { supabase } from '../supabase/supabase.js'
 
+const router = useRouter()
 const CACHE_KEY = 'vagrop_tecnicos_cache'
 
 const tecnicos = ref([])
@@ -20,6 +22,16 @@ const form = ref({
   sucursal: 'Nueva Guinea',
   activo: true
 })
+
+// Verificar permisos de Administrador al cargar la vista
+const verificarAccesoAdmin = () => {
+  const rolUsuario = localStorage.getItem('vagrop_rol')
+  // Si no es administrador, redirigimos fuera de la gestión de técnicos
+  if (rolUsuario !== 'admin') {
+    alert('Acceso denegado: Se requieren permisos de administrador.')
+    router.push('/productores')
+  }
+}
 
 // Cargar de Caché Local para rendimiento instantáneo con mala señal
 const cargarCacheLocal = () => {
@@ -133,6 +145,7 @@ const guardarTecnico = async () => {
 }
 
 // Cambiar estado Activo/Inactivo con actualización instantánea
+// Cambiar estado Activo/Inactivo con actualización instantánea y cierre de sesión si aplica
 const toggleEstado = async (tecnico) => {
   const nuevoEstado = !tecnico.activo
   tecnico.activo = nuevoEstado
@@ -146,10 +159,23 @@ const toggleEstado = async (tecnico) => {
   if (error) {
     tecnico.activo = !nuevoEstado
     alert('No se pudo actualizar en la base de datos (revisa tu señal).')
+    return
+  }
+
+  // Si el técnico desactivado es el usuario actual en este dispositivo, cerramos su sesión de inmediato
+  const usuarioActualId = localStorage.getItem('vagrop_user_id')
+  if (usuarioActualId && Number(usuarioActualId) === Number(tecnico.id) && !nuevoEstado) {
+    localStorage.removeItem('vagrop_user_id')
+    localStorage.removeItem('vagrop_nombre')
+    localStorage.removeItem('vagrop_rol')
+    localStorage.removeItem('vagrop_sucursal')
+    await supabase.auth.signOut()
+    alert('Tu cuenta ha sido desactivada por el administrador.')
+    router.push('/login')
   }
 }
-
 onMounted(() => {
+  verificarAccesoAdmin()
   obtenerTecnicos()
 })
 </script>
@@ -321,6 +347,7 @@ onMounted(() => {
 .app-wrapper {
   max-width: 600px;
   margin: 0 auto;
+  margin-top: 10vh;
   padding: 1rem;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #0F172A;
