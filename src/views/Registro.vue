@@ -1,5 +1,5 @@
 <template>
-  <div class="registro-container">
+  <div class="app-wrapper">
     <div class="registro-card">
       <div class="registro-header">
         <div class="header-icon-wrapper">
@@ -41,7 +41,7 @@
           <div class="input-with-icon">
             <Icon icon="ph:phone-bold" class="field-icon" />
             <input 
-              type="text" 
+              type="tel" 
               v-model="telefono" 
               placeholder="88888888"
             />
@@ -210,7 +210,6 @@ const handleRegistro = async () => {
   cargando.value = true
 
   try {
-    // 1. Crear el usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.value,
       password: password.value
@@ -219,7 +218,6 @@ const handleRegistro = async () => {
     if (authError) throw authError
 
     if (authData.user) {
-      // 2. Insertar el registro en la tabla 'tecnicos' con la sucursal elegida ("Nueva Guinea", "Rama" o "Ambas")
       const { error: dbError } = await supabase
         .from('tecnicos')
         .insert([
@@ -237,7 +235,6 @@ const handleRegistro = async () => {
 
       successMsg.value = '¡Usuario registrado con éxito!'
       
-      // Limpiar formulario
       nombre.value = ''
       email.value = ''
       telefono.value = ''
@@ -255,61 +252,79 @@ const handleRegistro = async () => {
 </script>
 
 <style scoped>
-.registro-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+.app-wrapper {
+  position: absolute;
+  top: 10vh;
+  left: 0;
+  width: 100vw;
+  min-height: calc(100vh - 10vh);
+  padding: 1rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0F172A;
   background-color: #F8FAFC;
-  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+  
+  /* Centrado infalible ignorando el contenedor padre */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
 }
 
 .registro-card {
   background: white;
   border: 1px solid #E2E8F0;
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.5rem 1.25rem;
   width: 100%;
-  max-width: 460px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  max-width: 500px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
+  margin-bottom: 5rem;
+}
+
+@media (min-width: 640px) {
+  .registro-card {
+    padding: 2rem;
+  }
 }
 
 .registro-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .header-icon-wrapper {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background-color: #E8F5E9;
   color: #388E3C;
   border-radius: 12px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .header-icon {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
 }
 
 .registro-header h2 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #0F172A;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.2rem 0;
 }
 
 .registro-header p {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #64748B;
   margin: 0;
 }
 
 .form-group {
-  margin-bottom: 0.95rem;
+  margin-bottom: 0.85rem;
 }
 
 .form-group label {
@@ -317,20 +332,20 @@ const handleRegistro = async () => {
   font-size: 0.75rem;
   font-weight: 600;
   color: #334155;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
 }
 
 /* Grillas de selección */
 .selection-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 .sucursales-grid-3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 .sucursales-grid-3 .full-width {
@@ -341,17 +356,18 @@ const handleRegistro = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
+  gap: 0.4rem;
+  padding: 0.7rem 0.5rem;
   background: #F8FAFC;
   border: 1px solid #CBD5E1;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #334155;
   user-select: none;
+  text-align: center;
 }
 
 .selection-card:hover {
@@ -367,8 +383,9 @@ const handleRegistro = async () => {
 }
 
 .card-icon {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   color: #64748B;
+  flex-shrink: 0;
 }
 
 .selection-card.active .card-icon {
@@ -403,15 +420,16 @@ const handleRegistro = async () => {
 
 .form-group input {
   width: 100%;
-  padding: 0.6rem 0.75rem 0.6rem 2.4rem;
+  padding: 0.7rem 0.75rem 0.7rem 2.5rem;
   border: 1px solid #CBD5E1;
   border-radius: 10px;
-  font-size: 0.85rem;
+  font-size: 16px;
   box-sizing: border-box;
   outline: none;
   background: white;
   color: #0F172A;
   transition: all 0.2s ease;
+  -webkit-appearance: none;
 }
 
 .form-group input:focus {
@@ -420,12 +438,12 @@ const handleRegistro = async () => {
 }
 
 .password-wrapper input {
-  padding-right: 2.5rem;
+  padding-right: 2.75rem;
 }
 
 .btn-toggle-password {
   position: absolute;
-  right: 0.75rem;
+  right: 0.5rem;
   background: transparent;
   border: none;
   color: #94A3B8;
@@ -433,8 +451,8 @@ const handleRegistro = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  padding: 0.2rem;
+  font-size: 1.25rem;
+  padding: 0.5rem;
 }
 
 .btn-toggle-password:hover {
@@ -449,7 +467,7 @@ const handleRegistro = async () => {
   font-size: 0.78rem;
   padding: 0.6rem 0.75rem;
   border-radius: 10px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
   font-weight: 600;
 }
 
@@ -474,10 +492,10 @@ const handleRegistro = async () => {
   background: #388E3C;
   color: white;
   border: none;
-  padding: 0.75rem;
+  padding: 0.8rem;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s ease;
   box-shadow: 0 4px 6px -1px rgba(56, 142, 60, 0.2);

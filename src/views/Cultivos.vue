@@ -325,6 +325,7 @@ onMounted(() => {
   max-width: 600px;
   margin: 0 auto;
   margin-top: 10vh;
+  margin-bottom: 5vh;
   padding: 1rem;
   font-family: system-ui, -apple-system, sans-serif;
   color: #0F172A;

@@ -170,10 +170,10 @@
           <!-- Acciones -->
           <div class="card-actions-row">
             <button class="action-btn btn-call" :disabled="!p.telefono" @click="llamarProductor(p.telefono)">
-              <Icon class="action-icon" icon="ph:phone-fill"/> 
+              <Icon class="action-icon" icon="ph:phone-fill"/> LLamar
             </button>
             <button class="action-btn btn-ws" :disabled="!p.telefono" @click="abrirWhatsApp(p.telefono, p.nombre)">
-              <Icon class="action-icon" icon="ph:whatsapp-logo-fill"/> 
+              <Icon class="action-icon" icon="ph:whatsapp-logo-fill"/> Whatsapp
             </button>
             <button class="action-btn btn-edit" @click="abrirModal(p)">
               <Icon class="action-icon" icon="ph:pencil-simple-line-fill"/> Editar
@@ -938,6 +938,7 @@ onMounted(() => {
   max-width: 1024px;
   margin: 0 auto;
   margin-top: 10vh;
+  margin-bottom: 5vh;
   padding: 1rem;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #0F172A;

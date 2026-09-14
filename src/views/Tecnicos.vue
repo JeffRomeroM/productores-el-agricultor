@@ -348,6 +348,7 @@ onMounted(() => {
   max-width: 600px;
   margin: 0 auto;
   margin-top: 10vh;
+  margin-bottom: 5vh;
   padding: 1rem;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #0F172A;
