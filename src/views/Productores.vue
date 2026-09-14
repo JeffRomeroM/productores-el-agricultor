@@ -345,7 +345,7 @@
           <!-- Sección Dinámica de Cultivos -->
           <div class="cultivos-section">
             <div class="cultivos-header">
-              <label>Cultivos y Estimado Estático (Qq/Mz)</label>
+              <label>Cultivos y Estimado de Cosecha</label>
               <button type="button" class="btn-add-cultivo" @click="agregarCultivo">
                 <Icon icon="ph:plus-bold"/> Agregar
               </button>
@@ -377,7 +377,7 @@
                   />
                 </div>
                 <div class="field-item field-qq">
-                  <span class="field-label">Est. Qq/Mz (Estático)</span>
+                  <span class="field-label">Est. Qq/Mz</span>
                   <input 
                     v-model.number="cultivoItem.estimado_qq_mz" 
                     type="number" 
